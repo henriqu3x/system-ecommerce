@@ -1,5 +1,7 @@
+from models.usuario import Usuario
+
 class Cliente():
-    def __init__(self, id, usuario, nome, telefone, endereco):
+    def __init__(self, id, usuario:Usuario, nome, telefone, endereco):
         self.id = id
         self.usuario = usuario
         self.nome = nome
