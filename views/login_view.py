@@ -19,3 +19,9 @@ def login(back_usuario):
     else:
         print('Email ou senha incorretos')
 
+
+def verificar_tipo(usuario):
+    if usuario.perfil == 'admin':
+        return 'admin'
+    else:
+        return 'cliente'
