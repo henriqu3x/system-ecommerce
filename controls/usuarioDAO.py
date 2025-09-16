@@ -56,8 +56,24 @@ class UsuarioDAO(Connection):
             self.desconectar()
             return []
 
-    def atualizar(self):
-        pass
+    def atualizar(self, usuario:Usuario):
+        if usuario:
+            try:
+                result = self.manipular('''
+    update usuario set nome_usu = %s, email_usu = %s, senha_usu = %s, perfil_usu = %s, where id_usuario = %s
+''', (usuario.nome, usuario.email, usuario.senha, usuario.perfil, usuario.id))
+                
+                if result:
+                    return True
+                else:
+                    return False
+            except Exception as e:
+                logging.error(f'Falha ao atualizar usuario: {e}, arquivo: usuarioDAO')
+                self.desconectar()
+                return False
+        else:
+            logging.error('Nenhum usuario inserido para ser atualizado, arquivo: usuarioDAO')
+            return False
 
     def remover(self, usuario:Usuario):
         if usuario:

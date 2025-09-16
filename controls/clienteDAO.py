@@ -1,5 +1,6 @@
 from db.connection import Connection
 from models.cliente import Cliente
+from models.usuario import Usuario
 import logging
 
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -33,7 +34,7 @@ class ClienteDAO(Connection):
             clientes = []
 
             for dado in dadosBrutos:
-                cliente = Cliente(dado[0], dado[1], dado[2], dado[3], dado[4])
+                cliente = Cliente(dado[0], Usuario(None, None, dado[2], None, None), dado[1], dado[3], dado[4])
                 clientes.append(cliente)
 
             return clientes
@@ -42,8 +43,25 @@ class ClienteDAO(Connection):
             self.desconectar()
             return []
 
-    def atualizar(self):
-        pass
+    def atualizar(self, cliente:Cliente):
+        if cliente:
+            try:
+                result = self.manipular('''
+    update cliente set usuario_id = %s, nome_cli = %s, telefone_cli = %s, endereco_cli = %s where id_cliente = %s
+                                        
+    ''', (cliente.usuario.id, cliente.nome, cliente.telefone, cliente.endereco, cliente.id))
+                
+                if result:
+                    return True
+                else:
+                    return False
+            except Exception as e:
+                logging.error(f'Erro ao tentar atualizar cliente: {e}, arquivo: clienteDAO')
+                self.desconectar()
+                return False
+        else:
+            logging.error('Nenhum cliente inserido para ser atualizado, arquivo: clienteDAO')
+            return False
 
     def remover(self, cliente:Cliente):
         if cliente:

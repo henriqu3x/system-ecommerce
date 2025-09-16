@@ -6,5 +6,5 @@ class Item():
         self.id = id
         self.compra = compra
         self.produto = produto
-        self.quantidade_item = quantidade
-        self.preco_unitario_item = preco_unitario
+        self.quantidade = quantidade
+        self.preco_unitario = preco_unitario
