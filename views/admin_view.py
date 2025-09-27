@@ -15,10 +15,29 @@ def cadastrar_produto():
         print('Falha ao cadastrar produto')
 
 def ver_produtos_estoque15():
-    pass
+    produtos = admin_services.ver_produtos_estoque15()
+
+    if produtos:
+        for produto in produtos:
+            print(f'ID: {produto.id} | NOME: {produto.nome} | CATEGORIA: {produto.categoria} | ESTOQUE: {produto.estoque} | PREÇO: {produto.preco_unitario}')
+    else:
+        print('Sem produtos com estoque em 15 ou abaixo')
 
 def atualizar_estoque_produto():
-    pass
+    ver_produtos_estoque15()
+    try:
+        id_produto = int(input('Digite o id do produto escolhido: '))
+        qtd_estoque = int(input('Insira o novo estoque do produto: '))
+        
+        result = admin_services.atualizar_estoque_produto(id_produto, qtd_estoque)
+        if result:
+            print('Estoque do produto atualizado com sucesso!')
+        else:
+            print('Falha ao atualizar estoque do produto')
+    except ValueError as e:
+        print('Id ou estoque invalidos')
+        
+    
 
 def atualizar_preco_produto():
     pass

@@ -37,7 +37,7 @@ class ProdutoDAO(Connection):
             produtos = []
 
             for dado in dadosBrutos:
-                produto = Produto(dado[0], dado[1], dado[2], dado[3, dado[4]])
+                produto = Produto(dado[0], dado[1], dado[2], dado[3], dado[4])
                 produtos.append(produto)
             
             return produtos
