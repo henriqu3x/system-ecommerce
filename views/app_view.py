@@ -5,7 +5,7 @@ from views import cliente_view
 def main(usuario_logado):
     verificar_tipo = login_view.verificar_tipo(usuario_logado)
 
-    if verificar_tipo == 'admin':
+    if verificar_tipo:
         admin_view.app_admin(usuario_logado)
     else:
-        admin_view.app_admin(usuario_logado)
+        cliente_view.app_cliente(usuario_logado)

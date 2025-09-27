@@ -3,7 +3,7 @@ import logging
 from models.usuario import Usuario
 from models.admin import Admin
 from models.cliente import Cliente
-from main import back_usuario, back_admin, back_cliente
+from container import back_usuario, back_admin, back_cliente
 
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
 

@@ -22,6 +22,6 @@ def login(back_usuario):
 
 def verificar_tipo(usuario):
     if usuario.perfil == 'admin':
-        return 'admin'
+        return True
     else:
-        return 'cliente'
+        return False
