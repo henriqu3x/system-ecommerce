@@ -19,6 +19,13 @@ class AdminServices():
         else:
             return False
 
+    def ver_produtos(self):
+        produtos = back_produto.ver_produtos()
+
+        if produtos:
+            return produtos
+        else:
+            return []
 
     def ver_produtos_estoque15(self):
         produtos = back_produto.ver_produtos()
@@ -53,11 +60,91 @@ class AdminServices():
             else:
                 return False
 
-    def atualizar_preco_produto(self, idProduto):
-        pass
+    def atualizar_preco_produto(self, idProduto, novoPreco):
+        produtos = self.ver_produtos()
+        produto_selecionado = None
 
-    def atualizar_produto(self, idProduto):
-        pass
+        for produto in produtos:
+            if produto.id == idProduto:
+                produto_selecionado = produto
+                break
 
+        try:
+            preco_decimal = float(novoPreco)
+
+            if isinstance(preco_decimal, float):
+                produto_selecionado.preco_unitario = preco_decimal
+                result = back_produto.atualizar(produto_selecionado)
+
+                if result:
+                    return True
+                else:
+                    return False
+            else:
+                return False
+        except Exception as e:
+            logging.error(f'falha ao tentar converter valor do preço para decimal, {e}')
+            return False
+        
+    def atualizar_produto(self, idProduto, nome, categoria, estoque, preco):
+        produtos = self.ver_produtos()
+        produto_selecionado = None
+
+        if produtos:
+            for produto in produtos:
+                if produto.id == idProduto:
+                    produto_selecionado = produto
+                    break
+                    
+            try:
+                produto_selecionado.nome = nome or produto_selecionado.nome
+                produto_selecionado.categoria = categoria or produto_selecionado.categoria
+                produto_selecionado.estoque = estoque or produto_selecionado.estoque
+                produto_selecionado.preco_unitario = preco or produto_selecionado.preco_unitario
+
+                estoque_int = int(produto_selecionado.estoque)
+                preco_decimal = float(produto_selecionado.preco_unitario)
+
+                if isinstance(preco_decimal, float) and isinstance(estoque_int, int):
+
+                    result = back_produto.atualizar(produto_selecionado)
+
+                    if result:
+                        return True
+                    else:
+                        return False
+                else:
+                    return False
+            except Exception as e:
+                logging.error(f'Erro ao atualizar produto {e}')
+                return False
+        else:
+            return False
+        
     def remover_produto(self, idProduto):
-        pass
+        produtos = self.ver_produtos()
+        produto_selecionado = None
+
+        try:
+            id_int = int(idProduto)
+
+            if isinstance(id_int, int):
+                for produto in produtos:
+                    if produto.id == idProduto:
+                        produto_selecionado = produto
+                        break
+
+                result = back_produto.remover(produto_selecionado)
+
+                if result:
+                    return True
+                else:
+                    return False
+            else:
+                return False
+
+        except Exception as e:
+            logging.error(f'Falha ao remover produto {e}')
+            return False
+
+        result = back_produto.remover()

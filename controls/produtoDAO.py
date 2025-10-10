@@ -31,7 +31,7 @@ class ProdutoDAO(Connection):
     def ver_produtos(self):
         try:
             dadosBrutos = self.consultar('''
-    select id_produto, nome_pro, categoria_pro, estoque_pro, preco_unitario_pro from produto
+    select id_produto, nome_pro, categoria_pro, estoque_pro, preco_unitario_pro from produto order by id_produto asc
 ''')
             
             produtos = []
