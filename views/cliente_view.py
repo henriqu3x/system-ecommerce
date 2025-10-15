@@ -1,2 +1,7 @@
 def app_cliente(usuario):
-    pass
+    while True:
+        print('Menu Cliente')
+
+        print('''
+    
+''')
