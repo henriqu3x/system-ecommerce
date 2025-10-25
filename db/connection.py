@@ -72,3 +72,23 @@ class Connection():
             return []
         finally:
             self.desconectar()
+
+
+    def manipular_consultar(self, sql, variaveis=[]):
+        try:
+            self.conectar()
+
+            if variaveis:
+                self.cur.execute(sql, variaveis)
+            else:
+                self.cur.execute(sql)
+
+            self.conn.commit()
+
+            logging.debug('SQL EXECUTADO COM SUCESSO!')
+            return True, self.cur.fetchone()
+        except Exception as e:
+            logging.error(f'Ocorreu um erro ao tentar manipular o banco de dados: {e}')
+            return False, None
+        finally:
+            self.desconectar()

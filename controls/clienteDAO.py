@@ -28,13 +28,13 @@ class ClienteDAO(Connection):
 
     def ver_clientes(self):
         try:
-            dadosBrutos = self.consultar('''select id_cliente, nome_cli, email_usu, telefone_cli, endereco_cli from cliente
+            dadosBrutos = self.consultar('''select id_cliente, usuario_id, nome_cli, email_usu, telefone_cli, endereco_cli from cliente
                                          inner join usuario on usuario_id = id_usuario
                                          ''')
             clientes = []
 
             for dado in dadosBrutos:
-                cliente = Cliente(dado[0], Usuario(None, None, dado[2], None, None), dado[1], dado[3], dado[4])
+                cliente = Cliente(dado[0], Usuario(dado[1], dado[2], dado[3], None, None), dado[2], dado[4], dado[5])
                 clientes.append(cliente)
 
             return clientes

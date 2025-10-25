@@ -1,5 +1,7 @@
-from container import back_produto
-from models import produto
+from container import back_produto, back_compra, back_item, back_cliente
+from models.produto import Produto
+from models.compra import Compra
+from models.item import Item
 import logging
 from decimal import Decimal
 
@@ -43,3 +45,74 @@ class ClienteServices():
             logging.error(f'Falha ao visualizar produtos com preço especificado: {e}')
             return []
 
+    def adicionar_produto_carrinho(self, id_usuario, id_produto, quantidade):
+        try:
+            clientes = back_cliente.ver_clientes()
+            cliente_final = None
+
+            if clientes:
+                for cliente in clientes:
+                    if cliente.usuario.id == id_usuario:
+                        cliente_final = cliente
+                        break
+
+                if not cliente_final:
+                    logging.error('Nenhum cliente final encontrado')
+                    return False
+
+            else:
+                logging.error('Nenhum cliente encontrado')
+                return False
+            
+            produtos = self.ver_produtos()
+            produto_escolhido = None
+
+            if produtos:
+                for produto in produtos:
+                    if produto.id == id_produto:
+                        produto_escolhido = produto
+                        break
+                if not produto_escolhido:
+                    return False
+            else:
+                logging.error('Nenhum produto encontrado')
+                return False
+
+            if quantidade <= produto_escolhido.estoque:
+                preco_total = produto_escolhido.preco_unitario * quantidade
+                carrinho = Compra(None, cliente_final, preco_total, None, None)
+                verificar_cliente = False
+
+                result_compra = None
+                result_item = None
+                compra_atual = None
+
+                compra_status_aberto = back_compra.buscar_carrinho_aberto(cliente_final)
+
+                if not compra_status_aberto:
+                    result_compra = back_compra.adicionar_retornar(carrinho)
+                    carrinho.id = result_compra[1]
+                    compra_atual = carrinho
+                else:
+                    compra_status_aberto.preco_total = compra_status_aberto.preco_total + produto_escolhido.preco_unitario * quantidade
+                    result_compra = back_compra.atualizar_retornar(compra_status_aberto)
+                    compra_atual = compra_status_aberto
+
+                if result_compra[0]:
+                    item = Item(None, compra_atual, produto_escolhido, quantidade, produto_escolhido.preco_unitario)
+                    result_item = back_item.adicionar(item)
+                
+                if result_compra[0] and result_item:
+                    return True
+                elif result_compra[0] and not result_item:
+                    if not compra_status_aberto:
+                        back_compra.remover(compra_atual)
+                    return False
+                else:
+                    logging.error('Falha ao adicionar item e compra ao banco')
+                    return False
+        
+        except Exception as e:
+            logging.error(f'Erro ao adicionar produto ao carrinho: {e}')
+            return False
+    

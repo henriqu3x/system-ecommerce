@@ -12,10 +12,13 @@ class CompraDAO(Connection):
     def adicionar(self, compra:Compra):
         if compra:
             try:
+                
                 result = self.manipular('''
-    insert into compra (cliente_id, preco_total_com, data_hora_com) values
-                                        (%s, %s, %s)
-''', (compra.cliente.id, compra.preco_total, compra.data_hora))
+    insert into compra (cliente_id, preco_total_com) values
+                                        (%s, %s)
+                                        returning id_compra
+''', (compra.cliente.id, compra.preco_total))
+                
                 
                 if result:
                     return True
@@ -32,14 +35,14 @@ class CompraDAO(Connection):
     def ver_compras(self):
         try:
             dadosBrutos = self.consultar('''
-    select id_compra, cliente_id, nome_cli, telefone_cli, preco_total_com, data_hora_com from compra
+    select id_compra, cliente_id, nome_cli, telefone_cli, preco_total_com, data_hora_com, status_com from compra
                                          inner join cliente on cliente_id = id_cliente
 ''')
             
             compras = []
 
             for dado in dadosBrutos:
-                compra = Compra(dado[0], Cliente(dado[1], dado[2], dado[3], None), dado[4], dado[5])
+                compra = Compra(dado[0], Cliente(dado[1], dado[2], dado[3], None, None), dado[4], dado[5], dado[6])
                 compras.append(compra)
             
             return compras
@@ -52,8 +55,8 @@ class CompraDAO(Connection):
         if compra:
             try:
                 result = self.manipular('''
-    update compra set cliente_id = %s, preco_total_com = %s, data_hora_com = %s where id_compra = %s
-''', (compra.cliente.id, compra.preco_total, compra.data_hora, compra.id))
+    update compra set cliente_id = %s, preco_total_com = %s, data_hora_com = %s, status_com = %s where id_compra = %s
+''', (compra.cliente.id, compra.preco_total, compra.data_hora, compra.status, compra.id))
                 
                 if result:
                     return True
@@ -83,3 +86,63 @@ class CompraDAO(Connection):
         else:
             logging.error('Nenhuma compra inserida para a tentativa de remoção, arquivo: compraDAO')
             return False
+
+    def adicionar_retornar(self, compra:Compra):
+        if compra:
+            try:
+                
+                result = self.manipular_consultar('''
+    insert into compra (cliente_id, preco_total_com) values
+                                        (%s, %s)
+                                        returning id_compra
+''', (compra.cliente.id, compra.preco_total))
+                
+                
+                if result[0]:
+                    new_id = result[1]
+                    return True, new_id
+                else:
+                    return False, None
+            except Exception as e:
+                logging.error(f'Falha ao tentar adicionar compra: {e}, arquivo: compraDAO')
+                self.desconectar()
+                return False, None
+        else:
+            logging.error('Nenhuma comprar inserida para ser adicionada, arquivo: compraDAO')
+            return False, None
+        
+    def atualizar_retornar(self, compra:Compra):
+        if compra:
+            try:
+                result = self.manipular_consultar('''
+    update compra set cliente_id = %s, preco_total_com = %s, data_hora_com = %s, status_com = %s where id_compra = %s returning id_compra
+''', (compra.cliente.id, compra.preco_total, compra.data_hora, compra.status, compra.id))
+                
+                if result[0]:
+                    new_id = result[1]
+                    return True, new_id
+                else:
+                    return False, None
+            except Exception as e:
+                logging.error(f'Falha ao atualizar compra: {e}, arquivo: compraDAO')
+                self.desconectar()
+                return False, None
+        else:
+            logging.error('Nenhuma compra inserida ao tentar atualizar, arquivo compraDAO')
+            return False, None
+        
+    def buscar_carrinho_aberto(self, cliente:Cliente):
+        try:
+            dadosBrutos = self.consultar('''
+    select id_compra, cliente_id, nome_cli, telefone_cli, preco_total_com, data_hora_com, status_com from compra
+                                         inner join cliente on cliente_id = id_cliente
+                                         where cliente_id = %s and status_com = 'aberto'
+''', (cliente.id, ))
+
+            for dado in dadosBrutos:
+                compra = Compra(dado[0], Cliente(dado[1], dado[2], dado[3], None, None), dado[4], dado[5], dado[6])
+                return compra
+
+        except Exception as e:
+            logging.error('Falha ao buscar carrinho aberto')
+            return None

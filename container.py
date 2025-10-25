@@ -5,6 +5,8 @@ from controls.usuarioDAO import UsuarioDAO
 from controls.adminDAO import AdminDAO
 from controls.clienteDAO import ClienteDAO
 from controls.produtoDAO import ProdutoDAO
+from controls.compraDAO import CompraDAO
+from controls.itemDAO import ItemDAO
 
 dotenv.load_dotenv(dotenv.find_dotenv())
 
@@ -20,4 +22,6 @@ back_usuario = UsuarioDAO(db)
 back_admin = AdminDAO(db)
 back_cliente = ClienteDAO(db)
 back_produto = ProdutoDAO(db)
+back_compra = CompraDAO(db)
+back_item = ItemDAO(db)
 
