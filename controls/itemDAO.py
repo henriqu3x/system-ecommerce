@@ -30,24 +30,43 @@ class ItemDAO(Connection):
             logging.error('Nenhum item inserido para ser adicionado, arquivo: itemDAO')
             return False
 
-    def ver_itens(self):
+    def ver_itens(self, compra:Compra):
         try:
             dadosBrutos = self.consultar('''
-    select id_item, nome_pro, quantidade_ite, preco_unitario_ite from item
-                                         inner join produto on produto_id = id_produto
-''')
-            
+                select 
+                    item.id_item,
+                    item.compra_id,
+                    item.produto_id,
+                    item.quantidade_ite,
+                    item.preco_unitario_ite,
+                    produto.id_produto,
+                    produto.nome_pro,
+                    produto.categoria_pro,
+                    produto.estoque_pro,
+                    produto.preco_unitario_pro
+                from item
+                inner join produto on item.produto_id = produto.id_produto
+                where item.compra_id = %s
+            ''', (compra.id, ))
+
             items = []
 
             for dado in dadosBrutos:
-                item = Item(dado[0], Compra(None, None, None, None), Produto(None, dado[1], None, None, None), dado[2], dado[3])
+                item = Item(
+                    dado[0],
+                    Compra(dado[1], None, None, None, None),
+                    Produto(dado[5], dado[6], dado[7], dado[8], dado[9]),
+                    dado[3],
+                    dado[4]
+                )
                 items.append(item)
-            
+
             return items
         except Exception as e:
             logging.error(f'Falha ao visualizar items {e}, arquivo: itemDAO')
             self.desconectar()
             return []
+
 
     def atualizar(self, item:Item):
         if item:

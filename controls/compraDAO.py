@@ -32,12 +32,12 @@ class CompraDAO(Connection):
             logging.error('Nenhuma comprar inserida para ser adicionada, arquivo: compraDAO')
             return False
 
-    def ver_compras(self):
+    def ver_compras(self, cliente:Cliente):
         try:
             dadosBrutos = self.consultar('''
     select id_compra, cliente_id, nome_cli, telefone_cli, preco_total_com, data_hora_com, status_com from compra
-                                         inner join cliente on cliente_id = id_cliente
-''')
+                                         inner join cliente on cliente_id = id_cliente where cliente_id = %s
+''', (cliente.id, ))
             
             compras = []
 

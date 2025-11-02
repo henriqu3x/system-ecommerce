@@ -58,6 +58,8 @@ db.manipular('''
              cliente_id int not null,
              preco_total_com decimal(8,2) not null,
              data_hora_com timestamp default current_timestamp,
+             status_com varchar(50) default 'aberto',
+             constraint chk_status check(status_com in ('aberto','fechado','pago')),
              constraint chk_preco_total check(preco_total_com > 0),
              constraint fk_compra_cliente foreign key (cliente_id) references cliente(id_cliente)
              )

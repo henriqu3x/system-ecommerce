@@ -1,5 +1,7 @@
 from services.cliente_services import ClienteServices
 cliente_services = ClienteServices()
+from services.compra_services import CompraServices
+compra_services = CompraServices()
 from models.usuario import Usuario
 from decimal import Decimal
 
@@ -31,6 +33,27 @@ def ver_produtos_preco_especificado():
     except Exception as e:
         print('Falha ao enviar preços, digite somente numeros')
 
+def ver_carrinho(usuario):
+    try:
+        id_usuario = int(usuario.id)
+        ver_carrinho = compra_services.ver_carrinho(id_usuario)
+
+        if ver_carrinho:
+            for item in ver_carrinho:
+                print(f"""
+        ID do Item: {item.id}
+        ID da Compra: {item.compra.id}
+        Produto: {item.produto.nome}
+        Categoria: {item.produto.categoria}
+        Estoque: {item.produto.estoque}
+        Quantidade: {item.quantidade}
+        Preço Unitário (Item): {item.preco_unitario}
+        """)
+                
+            return ver_carrinho
+    except Exception as e:
+        print(f'Falha ao ver carrinho, {e}')
+
 def adicionar_produto_carrinho(usuario:Usuario):
     try:
         id_usuario = int(usuario.id)
@@ -51,18 +74,74 @@ def adicionar_produto_carrinho(usuario:Usuario):
                         break
                     else:
                         print('O produto escolhido não tem estoque suficiente para a quantidade desejada')
-                else:
-                    print('Insira um id valido')        
+                       
         else:
             print('Nenhum produto encontrado!')
     except Exception as e:
         print(f'Falha ao enviar produto para ser adicionado ao carrinho: {e}')
 
-def atualizar_quantidade_produto_carrinho():
-    pass
+def atualizar_quantidade_produto_carrinho(usuario):
+    try:
+        carrinho = ver_carrinho(usuario)
 
-def remover_produto_carrinho():
-    pass
+        if carrinho:  
+            id_item = int(input('Digite o id do item que voce deseja alterar a quantidade: '))
+            item_selecionado = None
+
+            for item in carrinho:
+                if item.id == id_item:
+                    item_selecionado = item
+                    break
+            
+            if not item_selecionado:
+                print('Nenhum item encontrado para o id selecionado')
+                return
+
+            quantidade = int(input('Qual a nova quantidade: '))
+
+            result = cliente_services.atualizar_quantidade_produto_carrinho(item_selecionado, quantidade)
+
+            if result:
+                print('Quantidade do produto atualizada com sucesso!')
+            else:
+                print('Falha ao atualizar quantidade do produto no carrinho')
+        else:
+            print('Nenhuma compra encontrada')
+        
+    except Exception as e:
+        print(f'Falha ao atualizar quantidade, {e}')
+    except ValueError as e:
+        print('Insira numeros validos para o id e quantidade')
+
+def remover_produto_carrinho(usuario):
+    try:
+        carrinho = ver_carrinho(usuario)
+        if carrinho:
+            id_item = int(input('Digite o id do item que voce deseja remover: '))
+            item_selecionado = None
+
+            for item in carrinho:
+                if item.id == id_item:
+                    item_selecionado = item
+                    break
+
+            if not item_selecionado:
+                print('Nenhum item encontrado para o id selecionado')
+                return
+            
+            result = cliente_services.remover_produto_carrinho(item)
+
+            if result:
+                print('Sucesso ao remover produto do carrinho')
+            else:
+                print('Falha ao remover produto do carrinho')
+        else:
+            print('Nenhuma compra encontrada')
+                
+    except Exception as e:
+        print(f'Falha ao remover produto, {e}')
+    except ValueError as e:
+        print(f'Insira um numero valido para o id')
 
 def finalizar_compra():
     pass
@@ -74,10 +153,11 @@ def app_cliente(usuario):
         print('''
     1. Ver Produtos
     2. Ver Produtos com preço especificado
-    3. Adicionar Produtos ao carrinho
-    4. Atualizar a quantidade de um produto do carrinho
-    5. Remover produtos do carrinho
-    6. Finalizar Compra
+    3. Ver Carrinho
+    4. Adicionar Produtos ao carrinho
+    5. Atualizar a quantidade de um produto do carrinho
+    6. Remover produtos do carrinho
+    7. Finalizar Compra
     0. Voltar
 ''')
         
@@ -91,12 +171,14 @@ def app_cliente(usuario):
         elif op == '2':
             ver_produtos_preco_especificado()
         elif op == '3':
-            adicionar_produto_carrinho(usuario)
+            ver_carrinho(usuario)
         elif op == '4':
-            atualizar_quantidade_produto_carrinho()
+            adicionar_produto_carrinho(usuario)
         elif op == '5':
-            remover_produto_carrinho()
+            atualizar_quantidade_produto_carrinho(usuario)
         elif op == '6':
+            remover_produto_carrinho(usuario)
+        elif op == '7':
             finalizar_compra()
         else:
             print('Selecione uma opção valida')

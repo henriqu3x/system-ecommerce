@@ -115,4 +115,31 @@ class ClienteServices():
         except Exception as e:
             logging.error(f'Erro ao adicionar produto ao carrinho: {e}')
             return False
-    
+        
+    def atualizar_quantidade_produto_carrinho(self, item, quantidade):
+        try:
+            if quantidade <= item.produto.estoque:
+                item.quantidade = quantidade
+
+                result = back_item.atualizar(item)
+
+                if result:
+                    return True
+                else:
+                    return False
+            else:
+                return False
+        except Exception as e:
+            logging.error(f'Falha ao atualizar estoque do produto, {e}')
+
+    def remover_produto_carrinho(self, item):
+        try:
+            result = back_item.remover(item)
+
+            if result:
+                return True
+            else:
+                return False
+        except Exception as e:
+            logging.error(f'Falha ao remover produto do banco de dados, {e}')
+            return False
