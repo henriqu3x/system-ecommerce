@@ -121,7 +121,7 @@ class ClienteServices():
             if quantidade <= item.produto.estoque:
                 item.quantidade = quantidade
 
-                result = back_item.atualizar(item)
+                result = back_item.atualizar_item_simples(item)
 
                 if result:
                     return True

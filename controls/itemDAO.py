@@ -33,31 +33,56 @@ class ItemDAO(Connection):
     def ver_itens(self, compra:Compra):
         try:
             dadosBrutos = self.consultar('''
-                select 
-                    item.id_item,
-                    item.compra_id,
-                    item.produto_id,
-                    item.quantidade_ite,
-                    item.preco_unitario_ite,
-                    produto.id_produto,
-                    produto.nome_pro,
-                    produto.categoria_pro,
-                    produto.estoque_pro,
-                    produto.preco_unitario_pro
-                from item
-                inner join produto on item.produto_id = produto.id_produto
-                where item.compra_id = %s
-            ''', (compra.id, ))
+            SELECT 
+                item.id_item,              
+                item.compra_id,            
+                item.produto_id,           
+                item.quantidade_ite,       
+                item.preco_unitario_ite,   
+                produto.id_produto,        
+                produto.nome_pro,          
+                produto.categoria_pro,     
+                produto.estoque_pro,       
+                produto.preco_unitario_pro,
+                compra.preco_total_com,    
+                compra.status_com          
+            FROM item
+            INNER JOIN produto ON item.produto_id = produto.id_produto
+            INNER JOIN compra ON item.compra_id = compra.id_compra  
+            WHERE item.compra_id = %s
+        ''', (compra.id, ))
 
             items = []
 
             for dado in dadosBrutos:
+                ID_ITEM = 0
+                ID_COMPRA = 1
+                QUANTIDADE = 3
+                PRECO_UNITARIO = 4
+                
+                ID_PRODUTO = 5
+                NOME_PRO = 6
+                CATEGORIA_PRO = 7
+                ESTOQUE_PRO = 8
+                PRECO_PRO = 9
+                
+                PRECO_TOTAL_COMPRA = 10 
+                STATUS_COMPRA = 11     
+                
                 item = Item(
-                    dado[0],
-                    Compra(dado[1], None, None, None, None),
-                    Produto(dado[5], dado[6], dado[7], dado[8], dado[9]),
-                    dado[3],
-                    dado[4]
+                    dado[ID_ITEM],
+                    Compra(
+                        dado[ID_COMPRA], 
+                        None,                       
+                        dado[PRECO_TOTAL_COMPRA],   
+                        None,                       
+                        dado[STATUS_COMPRA]       
+                    ),
+                    Produto(
+                        dado[ID_PRODUTO], dado[NOME_PRO], dado[CATEGORIA_PRO], dado[ESTOQUE_PRO], dado[PRECO_PRO]
+                    ),
+                    dado[QUANTIDADE],
+                    dado[PRECO_UNITARIO]
                 )
                 items.append(item)
 
@@ -68,23 +93,48 @@ class ItemDAO(Connection):
             return []
 
 
-    def atualizar(self, item:Item):
+    def atualizar_item_simples(self, item:Item):
         if item:
             try:
                 result = self.manipular('''
-    update item set compra_id = %s, produto_id = %s, quantidade_ite = %s, preco_unitario_ite = %s where id_item = %s
-''', (item.compra.id, item.produto.id, item.quantidade, item.preco_unitario, item.id))
+                    UPDATE item set quantidade_ite = %s, preco_unitario_ite = %s where id_item = %s
+                ''', (item.quantidade, item.preco_unitario, item.id))
                 
                 if result:
                     return True
                 else:
                     return False
             except Exception as e:
-                logging.error(f'Falha ao atualizar item: {e}, arquivo: itemDAO')
+                logging.error(f'Falha ao atualizar item (simples): {e}, arquivo: itemDAO')
                 self.desconectar()
                 return False
         else:
-            logging.error('Nenhum item inserido ao tentar atualizar, arquivo itemDAO')
+            return False
+        
+    def finalizar_compra_transacional(self, item:Item): 
+        if item:
+            try:
+                result_produto = self.manipular('''
+                    UPDATE produto SET estoque_pro = %s WHERE id_produto = %s
+                ''', (item.produto.estoque, item.produto.id))
+
+                result_compra = self.manipular('''
+                    UPDATE compra SET status_com = %s, preco_total_com = %s WHERE id_compra = %s
+                ''', (item.compra.status, item.compra.preco_total, item.compra.id))
+                
+                result_item = self.manipular('''
+                    UPDATE item set quantidade_ite = %s, preco_unitario_ite = %s where id_item = %s
+                ''', (item.quantidade, item.preco_unitario, item.id))
+                
+                if result_produto and result_compra and result_item:
+                    return True
+                else:
+                    return False
+            except Exception as e:
+                logging.error(f'Falha na transação ao finalizar compra: {e}, arquivo: itemDAO')
+                self.desconectar()
+                return False
+        else:
             return False
 
     def remover(self, item:Item):

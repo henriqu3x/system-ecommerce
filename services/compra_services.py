@@ -46,4 +46,39 @@ class CompraServices():
 
         except Exception as e:
             logging.error('Falha ao visualizar carrinho!')
-            return []
+            return [] 
+
+    def finalizar_compra(self, id_usuario):
+        try:
+            carrinho = self.ver_carrinho(id_usuario)
+            
+            if not carrinho:
+                return False
+            
+            compra_principal = carrinho[0].compra
+                
+            preco_total_att = sum(item.preco_unitario * item.quantidade for item in carrinho)
+
+            compra_principal.preco_total = preco_total_att
+
+            for item in carrinho:
+
+                item.compra.status = 'pago'
+                
+                if item.produto.estoque < item.quantidade:
+                    logging.warning(f'Estoque insuficiente para o produto ID: {item.produto.id}')
+                    return False 
+                    
+                item.produto.estoque = item.produto.estoque - item.quantidade
+
+                result = back_item.finalizar_compra_transacional(item)
+                
+                if not result:
+                    logging.error(f'Falha ao atualizar item ID {item.id} durante a compra.')
+                    return False 
+                    
+            return True 
+
+        except Exception as e:
+            logging.error(f'Falha catastrófica ao finalizar a compra para o usuário {id_usuario}, {e}')
+            return False

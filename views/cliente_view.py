@@ -49,8 +49,13 @@ def ver_carrinho(usuario):
         Quantidade: {item.quantidade}
         Preço Unitário (Item): {item.preco_unitario}
         """)
-                
+        
             return ver_carrinho
+        else:
+            print('Nenhum item no carrinho!')
+            return []
+                
+        
     except Exception as e:
         print(f'Falha ao ver carrinho, {e}')
 
@@ -143,8 +148,23 @@ def remover_produto_carrinho(usuario):
     except ValueError as e:
         print(f'Insira um numero valido para o id')
 
-def finalizar_compra():
-    pass
+def finalizar_compra(usuario):
+    try:
+        carrinho = ver_carrinho(usuario)
+        preco_total = 0
+
+        for item in carrinho:
+            preco_total = sum(item.preco_unitario * item.quantidade for item in carrinho)
+
+        result = compra_services.finalizar_compra(usuario.id)
+
+        if result:
+            print(f'Compra finalizada com sucesso!, Total pago: {preco_total}')
+        else:
+            print('Falha ao finalizar compra, verifique se voce tem itens no carrinho ou se o produto tem estoque disponivel')
+
+    except Exception as e:
+        print(f'Ocorreu um erro ao finalizar a compra, {e}')
 
 def app_cliente(usuario):
     while True:
@@ -179,7 +199,7 @@ def app_cliente(usuario):
         elif op == '6':
             remover_produto_carrinho(usuario)
         elif op == '7':
-            finalizar_compra()
+            finalizar_compra(usuario)
         else:
             print('Selecione uma opção valida')
 
